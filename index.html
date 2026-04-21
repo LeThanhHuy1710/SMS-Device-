@@ -38,62 +38,69 @@ body {
 <div id="devices"></div>
 
 <script>
-const URL = "https://zxewnhxxojggatsyukif.supabase.co/rest/v1/sms";
+const BASE = "https://zxewnhxxojggatsyukif.supabase.co/rest/v1/";
 const KEY = "sb_publishable_AGpmkNidqBHY_dnz_TRJ0g_ZarfbeQi";
 
-let allData = [];
+let devices = [];
+let sms = [];
 
-function load() {
-  fetch(URL + "?order=created_at.desc", {
+async function load() {
+
+  // lấy devices
+  const d = await fetch(BASE + "devices", {
     headers: {
       "apikey": KEY,
       "Authorization": "Bearer " + KEY
     }
-  })
-  .then(res => res.json())
-  .then(data => {
-    allData = data;
-    render();
-  });
+  }).then(res => res.json());
+
+  // lấy sms
+  const s = await fetch(BASE + "sms?order=created_at.desc", {
+    headers: {
+      "apikey": KEY,
+      "Authorization": "Bearer " + KEY
+    }
+  }).then(res => res.json());
+
+  devices = d;
+  sms = s;
+
+  render();
 }
 
 function render() {
   const container = document.getElementById("devices");
   container.innerHTML = "";
 
-  const grouped = {};
+  const now = new Date();
 
-  allData.forEach(s => {
-    if (!grouped[s.device]) grouped[s.device] = [];
-    grouped[s.device].push(s);
-  });
+  devices.forEach(d => {
 
-  Object.keys(grouped).forEach(device => {
-    const list = grouped[device];
+    // sms của máy này
+    const list = sms.filter(x => x.device_id === d.id);
 
-    const lastTime = new Date(list[0].created_at);
-    const now = new Date();
-
-    const isOnline = (now - lastTime) < 120000;
+    // trạng thái online
+    const last = new Date(d.last_seen || d.created_at || 0);
+    const isOnline = (now - last) < 60000;
 
     const div = document.createElement("div");
     div.className = "device " + (isOnline ? "online" : "offline");
 
     div.innerHTML = `
-      <b>${device}</b><br>
+      <b>${d.device_name}</b><br>
       ${isOnline ? "🟢 Online" : "🔴 Offline"}<br>
-      <button onclick="deleteDevice('${device}')">🗑 Xoá</button>
+      <button onclick="deleteDevice('${d.id}', event)">🗑 Xoá</button>
     `;
 
-    div.onclick = () => showSMS(device, div);
+    div.onclick = () => showSMS(d.id, div);
 
     container.appendChild(div);
   });
 }
 
-function showSMS(device, element) {
+function showSMS(deviceId, element) {
 
-  const list = allData.filter(s => s.device === device);
+  const list = sms.filter(s => s.device_id === deviceId);
 
   let html = "<div class='sms'>";
 
@@ -112,10 +119,10 @@ function showSMS(device, element) {
   element.insertAdjacentHTML("beforeend", html);
 }
 
-function deleteDevice(device) {
-  event.stopPropagation();
+function deleteDevice(id, e) {
+  e.stopPropagation();
 
-  fetch(URL + "?device=eq." + encodeURIComponent(device), {
+  fetch(BASE + "devices?id=eq." + id, {
     method: "DELETE",
     headers: {
       "apikey": KEY,
