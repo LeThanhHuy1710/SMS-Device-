@@ -2,9 +2,15 @@ let devices = [];
 
 async function load(){
   try {
+
     const res = await fetch(BASE + "devices?select=*", {
       headers: headers()
     });
+
+    if (!res.ok) {
+      console.log("HTTP ERROR:", res.status);
+      return;
+    }
 
     const data = await res.json();
 
@@ -21,22 +27,16 @@ async function load(){
 
 function render(){
 
-  const box = document.getElementById("deviceList"); // ✅ FIX
-  const count = document.getElementById("count");
-
+  const box = document.getElementById("deviceList");
   if (!box) return;
 
   box.innerHTML = "";
-
-  if (count) {
-    count.innerText = devices.length + " thiết bị";
-  }
 
   const now = Date.now();
 
   devices.forEach(d => {
 
-    const last = Number(d.last_seen) || 0;
+    const last = new Date(d.last_seen || 0).getTime();
     const isOnline = (now - last) < 15000;
 
     const div = document.createElement("div");
@@ -50,9 +50,9 @@ function render(){
       </div>
 
       <div class="actions">
-        <button class="btn-blue" onclick="openSMS('${d.id}')">Tin nhắn</button>
-        <button class="btn-blue" onclick="openInfo('${d.id}')">Thông tin</button>
-        <button class="btn-red" onclick="deleteDevice('${d.id}')">Xoá</button>
+        <button onclick="openSMS('${d.id}')">Tin nhắn</button>
+        <button onclick="openInfo('${d.id}')">Thông tin</button>
+        <button onclick="deleteDevice('${d.id}')">Xoá</button>
       </div>
     `;
 
