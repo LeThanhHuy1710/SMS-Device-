@@ -6,10 +6,17 @@ function goBack(){
 }
 
 async function loadInfo(){
+
+  if (!deviceId){
+    document.getElementById("infoBox").innerHTML =
+      `<div class="loading">Thiếu device id</div>`;
+    return;
+  }
+
   try {
 
     const res = await fetch(
-      BASE + "device_info?device_id=eq." + deviceId + "&order=updated_at.desc&limit=1",
+      BASE + "devices?id=eq." + deviceId,
       { headers: headers() }
     );
 
@@ -35,33 +42,30 @@ function render(d){
 
       <div class="row">
         <div class="label">📱 Thiết bị</div>
-        <div class="value">${d.brand} ${d.model}</div>
-      </div>
-
-      <div class="row">
-        <div class="label">🤖 Android</div>
-        <div class="value">${d.android_version}</div>
+        <div class="value">${d.device_name || "Unknown"}</div>
       </div>
 
       <div class="row">
         <div class="label">🔋 Pin</div>
-        <div class="value">${d.battery}%</div>
+        <div class="value">${d.battery ?? "--"}%</div>
       </div>
 
       <div class="row">
         <div class="label">📡 Nhà mạng</div>
-        <div class="value">${d.network}</div>
+        <div class="value">${d.network || "Unknown"}</div>
       </div>
 
       <div class="row">
         <div class="label">📍 GPS</div>
-        <div class="value">${d.lat}, ${d.lon}</div>
+        <div class="value">
+          ${d.lat ?? 0}, ${d.lng ?? 0}
+        </div>
       </div>
 
       ${
-        d.lat !== "0"
+        d.lat && d.lng
         ? `<a class="map" target="_blank"
-             href="https://www.google.com/maps?q=${d.lat},${d.lon}">
+             href="https://www.google.com/maps?q=${d.lat},${d.lng}">
              🗺 Xem bản đồ
            </a>`
         : ""
