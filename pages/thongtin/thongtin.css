@@ -1,1 +1,97 @@
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
+/* BODY */
+body {
+  font-family: Arial;
+  background: #0e1621;
+  color: #e6edf3;
+}
+
+/* CONTAINER */
+.container {
+  max-width: 600px;
+  margin: auto;
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px;
+  background: #17212b;
+  border-bottom: 1px solid #2a3942;
+}
+
+.header button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* BOX */
+.info-box {
+  padding: 15px;
+}
+
+/* CARD */
+.card {
+  background: #17212b;
+  border-radius: 12px;
+  padding: 15px;
+}
+
+/* ROW */
+.row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #2a3942;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+/* LABEL */
+.label {
+  color: #8696a0;
+}
+
+/* VALUE */
+.value {
+  font-weight: bold;
+}
+
+/* MAP BUTTON */
+.map {
+  margin-top: 10px;
+  display: inline-block;
+  background: #2aabee;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: white;
+  text-decoration: none;
+}
+
+/* LOADING */
+.loading {
+  text-align: center;
+  margin-top: 50px;
+  color: #8696a0;
+}
+
+/* MOBILE */
+@media (max-width:600px){
+  .row {
+    flex-direction: column;
+    gap: 5px;
+  }
+}
