@@ -1,70 +1,28 @@
-async function load(){
-  try {
-    const res = await fetch(BASE + "devices?select=*&order=created_at.desc", {
-      headers: {
-        "apikey": KEY,
-        "Authorization": "Bearer " + KEY
-      }
-    });
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Device Dashboard</title>
 
-    if (!res.ok) {
-      console.log("API ERROR:", res.status);
-      return;
-    }
+<link rel="stylesheet" href="css/style.css">
 
-    const data = await res.json();
+</head>
+<body>
 
-    console.log("DEVICES:", data);
+<div class="container">
 
-    devices = Array.isArray(data) ? data : [];
+  <div class="header">
+    <h1>📱 Device Dashboard</h1>
+    <span id="count"></span>
+  </div>
 
-    render();
+  <div id="list" class="grid"></div>
 
-  } catch(e){
-    console.log("LOAD ERROR:", e);
-  }
-}
+</div>
 
-function render(){
-  const box = document.getElementById("list");
+<script src="script/config.js"></script>
+<script src="script/main.js"></script>
 
-  if (!box) {
-    console.log("Không tìm thấy #list");
-    return;
-  }
-
-  box.innerHTML = "";
-
-  const now = Date.now();
-
-  devices.forEach(d => {
-
-    // 👉 fix last_seen null / string
-    const last = Number(d.last_seen) || 0;
-    const isOnline = (now - last) < 15000;
-
-    // 👉 fix thiếu dữ liệu
-    const name = d.device_name || d.device || "Unknown device";
-    const id = d.id || "";
-
-    const div = document.createElement("div");
-    div.className = "device " + (isOnline ? "online" : "offline");
-
-    // 👉 dùng template string chuẩn (KHÔNG lỗi dấu `)
-    div.innerHTML = `
-      <div class="name">${name}</div>
-
-      <div class="status">
-        ${isOnline ? "🟢 Online" : "🔴 Offline"}
-      </div>
-
-      <div class="actions">
-        <button onclick="openSMS('${id}')">📩 Tin nhắn</button>
-        <button onclick="openInfo('${id}')">ℹ️ Thông tin</button>
-        <button onclick="deleteDevice('${id}')">🗑 Xoá</button>
-      </div>
-    `;
-
-    box.appendChild(div);
-  });
-}
+</body>
+</html>
