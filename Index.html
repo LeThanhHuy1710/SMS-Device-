@@ -1,1 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>OTP Dashboard</title>
 
+<style>
+body {
+  background: #0f172a;
+  color: white;
+  font-family: Arial;
+}
+
+.item {
+  background: #1e293b;
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 6px;
+}
+</style>
+
+</head>
+<body>
+
+<h2>📩 OTP nhận được</h2>
+<div id="list"></div>
+
+<script>
+const URL = "https://zxewnhxxojggatsyukif.supabase.co/rest/v1/sms";
+const KEY = "sb_publishable_AGpmkNidqBHY_dnz_TRJ0g_ZarfbeQi";
+
+function load() {
+  fetch(URL + "?order=created_at.desc", {
+    headers: {
+      "apikey": KEY,
+      "Authorization": "Bearer " + KEY
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    const list = document.getElementById("list");
+    list.innerHTML = "";
+
+    data.forEach(s => {
+      let div = document.createElement("div");
+      div.className = "item";
+      div.innerText =
+        "OTP: " + s.otp + "\n" +
+        s.content;
+
+      list.appendChild(div);
+    });
+  })
+  .catch(err => {
+    console.log(err);
+  });
+}
+
+// load lần đầu
+load();
+
+// tự refresh mỗi 2 giây
+setInterval(load, 2000);
+</script>
+
+</body>
+</html>
