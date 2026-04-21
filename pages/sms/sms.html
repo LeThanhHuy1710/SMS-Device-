@@ -5,112 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SMS</title>
 
-<style>
-body {
-  background:#0f172a;
-  color:white;
-  font-family:Arial;
-  margin:0;
-}
-
-.container {
-  max-width:800px;
-  margin:auto;
-  padding:15px;
-}
-
-.header {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.sms {
-  background:#1e293b;
-  padding:12px;
-  margin:10px 0;
-  border-radius:10px;
-}
-
-.sender {
-  font-weight:bold;
-  color:#38bdf8;
-}
-
-.otp {
-  color:#22c55e;
-  font-size:18px;
-  margin:5px 0;
-}
-
-button {
-  padding:6px 10px;
-  border:none;
-  border-radius:6px;
-  background:#3b82f6;
-  color:white;
-  cursor:pointer;
-}
-
-button:hover {
-  opacity:0.8;
-}
-
-/* mobile */
-@media (max-width:600px){
-  .otp { font-size:16px; }
-}
-</style>
+<link rel="stylesheet" href="../../css/style.css">
+<link rel="stylesheet" href="sms.css">
 </head>
 
 <body>
 
-<div class="container">
+<div class="chat">
 
-  <div class="header">
-    <h2>📩 Tin nhắn</h2>
-    <button onclick="goBack()">⬅ Quay lại</button>
+  <!-- HEADER -->
+  <div class="chat-header" id="header">
+    Đang tải...
   </div>
 
-  <div id="list"></div>
+  <!-- BODY -->
+  <div class="chat-body" id="chatBody">
+    <div class="empty">Đang tải tin nhắn...</div>
+  </div>
 
 </div>
 
-<script>
-const BASE = "https://zxewnhxxojggatsyukif.supabase.co/rest/v1/";
-const KEY = "sb_publishable_AGpmkNidqBHY_dnz_TRJ0g_ZarfbeQi";
+<script src="../../script/config.js"></script>
+<script src="sms.js"></script>
 
-// 👉 lấy device_id từ URL
-const params = new URLSearchParams(window.location.search);
-const device = params.get("device");
-
-async function load(){
-
-  if(!device){
-    document.getElementById("list").innerHTML = "❌ Không có device";
-    return;
-  }
-
-  try {
-
-    const data = await fetch(
-      BASE + "sms?device_id=eq." + device + "&order=created_at.desc",
-      {
-        headers: {
-          "apikey": KEY,
-          "Authorization": "Bearer " + KEY
-        }
-      }
-    ).then(res => res.json());
-
-    render(data);
-
-  } catch(e){
-    console.log("ERROR", e);
-  }
-}
-
-function render(data){
-
-  const box = document.getElementById("list");
-  box
+</body>
+</html>
