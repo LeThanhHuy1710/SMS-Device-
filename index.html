@@ -1,23 +1,38 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Device Dashboard</title>
+<title>Telegram Style</title>
 
 <link rel="stylesheet" href="css/style.css">
-
 </head>
+
 <body>
 
-<div class="container">
+<div class="app">
 
-  <div class="header">
-    <h1>📱 Device Dashboard</h1>
-    <span id="count"></span>
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      📱 Devices
+    </div>
+
+    <div id="deviceList" class="device-list"></div>
   </div>
 
-  <div id="list" class="grid"></div>
+  <!-- CHAT -->
+  <div class="chat">
+
+    <div class="chat-header" id="chatHeader">
+      Chọn thiết bị
+    </div>
+
+    <div class="chat-body" id="chatBody">
+      <div class="empty">Chưa chọn thiết bị</div>
+    </div>
+
+  </div>
 
 </div>
 
