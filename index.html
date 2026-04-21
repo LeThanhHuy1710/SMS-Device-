@@ -7,46 +7,61 @@ async function load(){
       }
     });
 
+    if (!res.ok) {
+      console.log("API ERROR:", res.status);
+      return;
+    }
+
     const data = await res.json();
 
-    console.log("DEVICES:", data); // 👈 debug
+    console.log("DEVICES:", data);
 
-    devices = data;
+    devices = Array.isArray(data) ? data : [];
 
     render();
 
   } catch(e){
-    console.log("LOAD ERROR", e);
+    console.log("LOAD ERROR:", e);
   }
 }
 
 function render(){
   const box = document.getElementById("list");
+
+  if (!box) {
+    console.log("Không tìm thấy #list");
+    return;
+  }
+
   box.innerHTML = "";
 
-  const now = new Date();
+  const now = Date.now();
 
   devices.forEach(d => {
 
-    const last = new Date(Number(d.last_seen) || 0);
-    const diff = now - last;
+    // 👉 fix last_seen null / string
+    const last = Number(d.last_seen) || 0;
+    const isOnline = (now - last) < 15000;
 
-    const isOnline = diff < 15000;
+    // 👉 fix thiếu dữ liệu
+    const name = d.device_name || d.device || "Unknown device";
+    const id = d.id || "";
 
     const div = document.createElement("div");
     div.className = "device " + (isOnline ? "online" : "offline");
 
+    // 👉 dùng template string chuẩn (KHÔNG lỗi dấu `)
     div.innerHTML = `
-      <div class="name">${d.device_name || "Unknown device"}</div>
+      <div class="name">${name}</div>
 
       <div class="status">
         ${isOnline ? "🟢 Online" : "🔴 Offline"}
       </div>
 
       <div class="actions">
-        <button onclick="openSMS('${d.id}')">📩 Tin nhắn</button>
-        <button onclick="openInfo('${d.id}')">ℹ️ Thông tin</button>
-        <button onclick="deleteDevice('${d.id}')">🗑 Xoá</button>
+        <button onclick="openSMS('${id}')">📩 Tin nhắn</button>
+        <button onclick="openInfo('${id}')">ℹ️ Thông tin</button>
+        <button onclick="deleteDevice('${id}')">🗑 Xoá</button>
       </div>
     `;
 
