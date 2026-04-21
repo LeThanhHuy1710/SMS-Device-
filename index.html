@@ -1,98 +1,20 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Devices</title>
-
-<style>
-body {
-  background:#0f172a;
-  color:white;
-  font-family:Arial;
-  margin:0;
-}
-
-.container {
-  max-width:900px;
-  margin:auto;
-  padding:15px;
-}
-
-.device {
-  background:#1e293b;
-  padding:15px;
-  margin:10px 0;
-  border-radius:10px;
-  transition:0.2s;
-}
-
-.device:hover {
-  transform:scale(1.01);
-}
-
-.online { border-left:5px solid #22c55e; }
-.offline { border-left:5px solid #ef4444; }
-
-.name {
-  font-size:18px;
-  font-weight:bold;
-}
-
-.status {
-  margin-top:5px;
-}
-
-.actions {
-  margin-top:10px;
-}
-
-button {
-  margin-right:6px;
-  margin-top:6px;
-  padding:6px 10px;
-  border:none;
-  border-radius:6px;
-  background:#3b82f6;
-  color:white;
-  cursor:pointer;
-}
-
-button:hover {
-  opacity:0.8;
-}
-
-/* mobile */
-@media (max-width:600px){
-  .name { font-size:16px; }
-  button { width:100%; }
-}
-</style>
-</head>
-
-<body>
-
-<div class="container">
-  <h2>📱 Thiết bị</h2>
-  <div id="list"></div>
-</div>
-
-<script>
-const BASE = "https://zxewnhxxojggatsyukif.supabase.co/rest/v1/";
-const KEY = "sb_publishable_AGpmkNidqBHY_dnz_TRJ0g_ZarfbeQi";
-
-let devices = [];
-
 async function load(){
   try {
-    devices = await fetch(BASE + "devices?order=created_at.desc", {
+    const res = await fetch(BASE + "devices?select=*&order=created_at.desc", {
       headers: {
         "apikey": KEY,
         "Authorization": "Bearer " + KEY
       }
-    }).then(r => r.json());
+    });
+
+    const data = await res.json();
+
+    console.log("DEVICES:", data); // 👈 debug
+
+    devices = data;
 
     render();
+
   } catch(e){
     console.log("LOAD ERROR", e);
   }
@@ -106,10 +28,9 @@ function render(){
 
   devices.forEach(d => {
 
-    const last = new Date(d.last_seen || 0);
+    const last = new Date(Number(d.last_seen) || 0);
     const diff = now - last;
 
-    // 👉 15s là offline
     const isOnline = diff < 15000;
 
     const div = document.createElement("div");
@@ -132,33 +53,3 @@ function render(){
     box.appendChild(div);
   });
 }
-
-function openSMS(id){
-  location.href = "chucnang/sms/sms.html?device=" + id;
-}
-
-function openInfo(id){
-  location.href = "chucnang/thongtin/thongtin.html?device=" + id;
-}
-
-function deleteDevice(id){
-  if (!confirm("Xoá thiết bị này?")) return;
-
-  fetch(BASE + "devices?id=eq." + id, {
-    method: "DELETE",
-    headers: {
-      "apikey": KEY,
-      "Authorization": "Bearer " + KEY
-    }
-  }).then(() => load());
-}
-
-// load lần đầu
-load();
-
-// realtime giả (5s)
-setInterval(load, 5000);
-</script>
-
-</body>
-</html>
